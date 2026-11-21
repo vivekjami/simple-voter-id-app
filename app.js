@@ -58,6 +58,17 @@
     $("sheet").innerHTML = html;
   }
 
+  function renderMobile() {
+    $("mobileList").innerHTML = state.voters.map((v, i) => v
+      ? `<div class="m-card filled" data-i="${i}"><div class="m-num">${i + 1}</div><div class="m-body">
+          <div class="m-name">${esc(v.name)}</div>
+          <div class="m-sub">${esc(v.voterId)}${v.relName ? " · " + esc(v.relName) : ""}</div>
+          <div class="m-sub">${v.serial ? esc(T("serial")) + ": " + esc(v.serial) : ""}${v.page ? " · " + esc(T("page")) + ": " + esc(v.page) : ""}</div>
+        </div><div class="m-edit">✎</div></div>`
+      : `<div class="m-card empty" data-i="${i}"><div class="m-num">${i + 1}</div><div class="m-body">${esc(T("addVoter"))}</div></div>`).join("");
+  }
+  $("mobileList").addEventListener("click", (e) => { const c = e.target.closest(".m-card"); if (c) openVoter(+c.dataset.i); });
+
   function renderChrome() {
     $("appTitle").textContent = T("appTitle");
     $("langLabel").textContent = T("language") + ":";
@@ -81,10 +92,10 @@
     b.textContent = T("fillAllPrompt");
     document.documentElement.lang = state.lang === "en" ? "en" : "te";
   }
-  function render() { renderChrome(); renderSheet(); fit(); }
+  function render() { renderChrome(); renderSheet(); renderMobile(); fit(); }
 
   function fit() {
-    const scale = Math.min(1, (window.innerWidth - 24) / 794);
+    const scale = window.innerWidth <= 800 ? 1 : Math.min(1, (window.innerWidth - 24) / 794);
     $("sheetWrap").style.zoom = scale;
   }
   window.addEventListener("resize", fit);
