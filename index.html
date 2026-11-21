@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voter List Page Builder</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="toolbar">
+  <div class="tb-left">
+    <strong id="appTitle"></strong>
+    <label class="lang"><span id="langLabel"></span>
+      <select id="langSelect">
+        <option value="both"></option><option value="te"></option><option value="en"></option>
+      </select>
+    </label>
+  </div>
+  <div class="tb-right">
+    <span id="progress" class="progress"></span>
+    <button id="btnHeader" class="btn" hidden></button>
+    <button id="btnPdf" class="btn primary"></button>
+    <button id="btnNext" class="btn"></button>
+  </div>
+</header>
+<div class="pbar"><div class="pbar-top"><span id="pbarText"></span></div><div class="pbar-track"><div id="pbarFill" class="pbar-fill"></div></div></div>
+<div id="banner" class="banner" hidden></div>
+<main class="stage"><div id="sheetWrap"><div id="sheet" class="sheet"></div></div></main>
+
+<dialog id="voterDlg">
+  <form id="voterForm" method="dialog" novalidate>
+    <h3 id="dlgTitle"></h3>
+    <div id="formFields"></div>
+    <div class="dlg-actions">
+      <button type="button" id="dlgRemove" class="btn danger"></button>
+      <span class="spacer"></span>
+      <button type="button" id="dlgCancel" class="btn"></button>
+      <button type="submit" id="dlgSave" class="btn primary"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="headerDlg">
+  <form id="headerForm" method="dialog">
+    <h3 id="hdrTitle"></h3>
+    <div id="headerFields"></div>
+    <div class="dlg-actions"><span class="spacer"></span>
+      <button type="button" id="hdrCancel" class="btn"></button>
+      <button type="submit" id="hdrSave" class="btn primary"></button>
+    </div>
+  </form>
+</dialog>
+
+<script src="lib/html2canvas.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
