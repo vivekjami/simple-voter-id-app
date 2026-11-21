@@ -7,6 +7,7 @@
   const defaultState = () => ({
     lang: "both",
     header: { title: "", ward: "", page: "1", ageDate: "01-01-2026", pubDate: "" },
+    fixed: { ward: "28", stationName: "Co-operative office, main road", pollDate: "26/11/2026" },
     voters: Array(SLOTS).fill(null),
   });
   let state = load();
@@ -15,7 +16,7 @@
       const s = JSON.parse(localStorage.getItem(KEY));
       if (s && Array.isArray(s.voters)) {
         const d = defaultState();
-        return { ...d, ...s, header: { ...d.header, ...s.header }, voters: Array.from({ length: SLOTS }, (_, i) => s.voters[i] || null) };
+        return { ...d, ...s, header: { ...d.header, ...s.header }, fixed: { ...d.fixed, ...s.fixed }, voters: Array.from({ length: SLOTS }, (_, i) => s.voters[i] || null) };
       }
     } catch (e) {}
     return defaultState();
@@ -43,11 +44,14 @@
     let html = `<div class="grid">`;
     state.voters.forEach((v, i) => {
       if (!v) { html += `<div class="card empty" data-i="${i}">${esc(T("addVoter"))}</div>`; return; }
+      const f = state.fixed;
       html += `<div class="card filled" data-i="${i}">
-        <div class="c-top"><span>${esc(T("serial"))}: <span class="c-idx">${esc(v.serial || "")}</span></span>${v.page ? `<span class="pg">${esc(T("page"))}: <b class="v">${esc(v.page)}</b></span>` : ""}${v.gender ? `<span>${esc(T("gender"))}: <b class="v">${esc(genderShort(v.gender))}</b></span>` : ""}</div>
+        <div class="c-top"><span>${esc(T("serial"))}: <b class="v">${esc(v.serial || "")}</b></span>${v.page ? `<span>${esc(T("page"))}: <b class="v">${esc(v.page)}</b></span>` : ""}<span>${esc(T("ward"))}: <b class="v">${esc(f.ward)}</b></span></div>
         <div class="row"><b>${esc(T("name"))}</b><div class="v big">${esc(v.name)}</div></div>
-        ${v.relName ? `<div class="row"><b>${esc(T("relName"))}</b><div class="v">${esc(v.relName)}</div></div>` : ""}
+        <div class="row"><b>${esc(T("relName"))}</b><div class="v">${esc(v.relName || "")}</div></div>
         <div class="c-id"><b>${esc(T("voterId"))}</b><div class="v big">${esc(v.voterId)}</div></div>
+        <div class="row"><b>${esc(T("stationName"))}</b><div class="v sm">${esc(f.stationName)}</div></div>
+        <div class="row"><b>${esc(T("pollDate"))}</b><div class="v sm">${esc(f.pollDate)}</div></div>
       </div>`;
     });
     html += `</div><div class="sh-foot"></div>`;
@@ -62,6 +66,7 @@
     opts[1].textContent = `${I18N.te.langTe} (Telugu)`;
     opts[2].textContent = "English";
     $("langSelect").value = state.lang;
+    $("btnHeader").textContent = T("fixedDetails");
     $("btnPdf").textContent = T("downloadPdf");
     $("btnNext").textContent = T("nextPage");
     const n = state.voters.filter(Boolean).length;
@@ -94,18 +99,13 @@
     editing = i;
     const v = state.voters[i] || {};
     $("dlgTitle").textContent = (v.name ? T("editVoter") : T("newVoter")) + ` #${i + 1}`;
-    const gOpts = ["M", "F", "O"].map((k) => `<option value="${k}">${esc(T(GENDER_KEY[k]))}</option>`).join("");
     $("formFields").innerHTML =
       field("f_name", "name", "text", true, 'autocomplete="off"') +
       field("f_voterId", "voterId", "text", true, 'autocomplete="off" style="text-transform:uppercase"') +
       field("f_relName", "relName", "text", false, 'autocomplete="off"') +
-      `<div class="two"><div class="fld"><label for="f_gender">${esc(T("gender"))}<span class="tag">(${esc(T("optional"))})</span></label>
-        <select id="f_gender"><option value="">${esc(T("select"))}</option>${gOpts}</select></div>
-        ${field("f_serial", "serial", "text", false)}</div>` +
-      field("f_page", "page", "text", false, 'autocomplete="off"');
+      `<div class="two">${field("f_serial", "serial", "text", false)}${field("f_page", "page", "text", false, 'autocomplete="off"')}</div>`;
     $("f_name").value = v.name || ""; $("f_voterId").value = v.voterId || "";
-    $("f_relName").value = v.relName || "";
-    $("f_gender").value = v.gender || ""; $("f_serial").value = v.serial || ""; $("f_page").value = v.page || "";
+    $("f_relName").value = v.relName || ""; $("f_serial").value = v.serial || ""; $("f_page").value = v.page || "";
     $("dlgSave").textContent = T("save"); $("dlgCancel").textContent = T("cancel");
     $("dlgRemove").textContent = T("remove"); $("dlgRemove").hidden = !state.voters[i];
     $("voterDlg").showModal();
@@ -119,9 +119,8 @@
     $("f_name").classList.toggle("bad", !name); $("f_voterId").classList.toggle("bad", !voterId);
     if (!name || !voterId) return;
     state.voters[editing] = {
-      name, voterId,
-      relName: $("f_relName").value.trim(),
-      gender: $("f_gender").value, serial: $("f_serial").value.trim(), page: $("f_page").value.trim(),
+      name, voterId, relName: $("f_relName").value.trim(),
+      serial: $("f_serial").value.trim(), page: $("f_page").value.trim(),
     };
     save(); $("voterDlg").close(); render();
   });
@@ -133,24 +132,20 @@
     const c = e.target.closest(".card"); if (c && !document.body.classList.contains("busy")) openVoter(+c.dataset.i);
   });
 
-  // ---- header dialog ----
+  // ---- fixed details dialog (same for every card) ----
   $("btnHeader").onclick = () => {
-    const h = state.header;
-    $("hdrTitle").textContent = T("editHeader");
+    const f = state.fixed;
+    $("hdrTitle").textContent = T("fixedDetails");
     $("headerFields").innerHTML =
-      field("h_title", "headerTitle", "text", false, `placeholder="${esc(T("listTitle"))}"`) +
-      `<div class="two">${field("h_ward", "ward", "text", false)}${field("h_page", "page", "text", false)}</div>` +
-      `<div class="two">${field("h_ageDate", "ageDate", "text", false)}${field("h_pubDate", "pubDate", "text", false)}</div>`;
-    $("h_title").value = h.title; $("h_ward").value = h.ward; $("h_page").value = h.page;
-    $("h_ageDate").value = h.ageDate; $("h_pubDate").value = h.pubDate;
+      field("h_ward", "ward", "text", false) + field("h_station", "stationName", "text", false) + field("h_poll", "pollDate", "text", false);
+    $("h_ward").value = f.ward; $("h_station").value = f.stationName; $("h_poll").value = f.pollDate;
     $("hdrSave").textContent = T("save"); $("hdrCancel").textContent = T("cancel");
     $("headerDlg").showModal();
   };
   $("hdrCancel").onclick = () => $("headerDlg").close();
   $("headerForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    state.header = { title: $("h_title").value.trim(), ward: $("h_ward").value.trim(), page: $("h_page").value.trim(),
-      ageDate: $("h_ageDate").value.trim(), pubDate: $("h_pubDate").value.trim() };
+    state.fixed = { ward: $("h_ward").value.trim(), stationName: $("h_station").value.trim(), pollDate: $("h_poll").value.trim() };
     save(); $("headerDlg").close(); render();
   });
 

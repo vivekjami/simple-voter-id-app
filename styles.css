@@ -110,3 +110,23 @@ dialog h3{margin:0 0 12px}
 .c-top .pg{font-size:13px!important}
 .c-top .pg .v{font-size:14px!important}
 .card .v{word-break:break-word;line-height:1.2}
+
+/* extra fields: compact so 10 cards still fit A4 */
+.card .v.sm{font-size:13px;font-weight:700;line-height:1.2;display:block}
+.card .row.inline3{display:flex;gap:10px;flex-wrap:wrap}
+.card .row.inline3 span{display:block}
+.card .row.inline3 b,.card .row b{font-size:11px}
+.card .v{font-size:16px}
+.card .v.big{font-size:18px}
+.c-top{font-size:12px!important}
+.c-top .v{font-size:13px!important}
+.c-top .pg,.c-top .pg .v{font-size:12px!important}
+
+/* final card typography: all rows incl. polling date must be visible */
+.card{justify-content:space-evenly!important;gap:1px!important;padding:5px 10px!important}
+.card .row b,.card .c-id b{font-size:11px!important;line-height:1.1}
+.card .v{font-size:16px!important;line-height:1.15}
+.card .v.big{font-size:19px!important}
+.card .v.sm{font-size:14px!important}
+.c-top{font-size:12px!important;display:flex;justify-content:space-between;gap:6px}
+.c-top .v{font-size:14px!important}
